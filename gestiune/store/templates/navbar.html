@@ -19,6 +19,13 @@
         <li class="nav-item"> 
         <a class="btn btn-secondary text-light text-uppercase font-weight-bold px-3 bg-dark border-0" role="button" aria-expanded="false" href="#">About</a> 
         </li>
+        {% if item_count > 0 %}
+        <li class="nav-item"> 
+            <a class="btn btn-secondary text-light text-uppercase font-weight-bold px-3 bg-dark border-0" role="button" aria-expanded="false" href="{% url 'cart_detail' %}">
+                <i class="fas fa-shopping-cart"></i>({{item_count}})
+            </a> 
+            {% endif %}
+            </li>
     </ul>
     
     <form class="form-inline">
