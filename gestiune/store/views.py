@@ -2,6 +2,12 @@ from django.shortcuts import render ,get_object_or_404 ,redirect
 from .models import Category , Product , Cart , CartItem 
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+import stripe
+from django.conf import settings
+from django.contrib.auth.models import Group , User
+from .forms import SignUpForm
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login , authenticate , logout
 
 
 def home(request ,category_slug=None):
@@ -62,7 +68,14 @@ def cart_detail(request, total = 0, counter=0, cart_items = None):
     except ObjectDoesNotExist:
         pass
 
-    return render(request, 'cart.html' , dict(cart_items=cart_items , total=total, counter=counter))
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe_total = int(total * 100)
+    description = 'New Order'
+    data_key = settings.STRIPE_PUBLISHABLE_KEY
+    if request.method == 'POST':
+        print(request.POST)
+
+    return render(request, 'cart.html' , dict(cart_items=cart_items , total=total, counter=counter , data_key=data_key, description=description))
 
 def cart_remove(request, product_id):
     cart = Cart.objects.get(cart_id =_cart_id(request))
@@ -82,3 +95,37 @@ def cart_remove_product(request, product_id):
     cart_item =CartItem.objects.get(product = product, cart = cart)
     cart_item.delete()
     return redirect('cart_detail')
+
+
+def signupView(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            signup_user = User.objects.get(username=username)
+            customer_group=Group.objects.get(name= "Customer")
+            customer_group.user_set.add(signup_user)
+    else:
+        form = SignUpForm()
+    return render(request, 'signup.html', {'form': form})
+
+def signinView(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(username = username, password = password)
+            if user is not None:
+                login(request, user)
+                return redirect('home')
+            else:
+                return redirect('signup')
+    else:
+        form=AuthenticationForm()
+    return render(request,'signin.html', {'form': form})
+
+def signoutView(request):
+    logout(request)
+    return redirect('signin')
