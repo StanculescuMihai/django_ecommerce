@@ -27,6 +27,6 @@ Database: SQLite
 Getting Started:
 Prerequisites:
 -After you clone the repository open the terminal and write: "pip install -r requirements.txt".
--go to "gestiune folder" and write py manage.py runserver to start the project
+-go to "gestiune folder" and write "py manage.py runserver" to start the project.
 
 
